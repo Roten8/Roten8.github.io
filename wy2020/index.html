@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimal-ui">
+    <meta name="screen-orientation" content="portrait" />
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="full-screen" content="yes">
+    <meta name="x5-fullscreen" content="true">
+    <link rel="stylesheet" href="css/reset.css">
+    <link rel="stylesheet" href="css/index.css">
+    <script src="lib/rem.js"></script>
+    <script src="lib/jquery-3.3.1.js"></script>
+    <link rel="shortcut icon" href="#" />
+</head>
+
+<body>
+    <div class="one">
+        <div class="bg"></div>
+        <div class="opacity">
+            <div class="logo-img"></div>
+            <div class="remind">
+                <p id="processLable">0%</p>
+                <div class="processLine"></div>
+                <p class="remind-lable">(请锁定屏幕方向)</p>
+            </div>
+            <div class="enter-view">
+                <div class="rotate-arrows"></div>
+                <div class="rotate-phone"></div>
+                <div id="clickPlay"></div>
+            </div>
+        </div>
+    </div>
+    <div class="special">
+        <video src="mp4/video.mp4" webkit-playsinline='true' playsinline='true' id="video-s" x-webkit-airplay="allow" x5-video-player-type="h5" x5-video-player-fullscreen="false" x5-video-orientation="portraint" style="object-fit:fill" preload="auto" autoplay="autoplay"></video>
+        <!-- poster="imgs/bg_arriving.png" -->
+        <canvas id="canvas"></canvas>
+    </div>
+    <div class="five">
+        <div class="border">
+            <div class="playAgain"></div>
+            <div class="share"></div>
+            <div class="gotoTicket"></div>
+        </div>
+        <div class="share-div">
+            <div class="share-opa"></div>
+        </div>
+    </div>
+    <!-- 必须加在微信api资源 -->
+    <script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+    <script src="./js/index.js"></script>
+</body>
+<script>
+    //获取video
+    var oLiveVideo = document.getElementById("liveVideo");
+    //获取canvas画布
+    var oLiveCanvas = document.getElementById("liveCanvas");
+    //设置画布
+    var oLiveCanvas2D = oLiveCanvas.getContext('2d');
+    //设置setinterval定时器
+    var bLiveVideoTimer = null;
+
+    //监听播放
+    oLiveVideo.addEventListener('play', function() {
+        bLiveVideoTimer = setInterval(function() {
+            oLiveCanvas2D.drawImage(myPlayer, 0, 0, 640, 320);
+        }, 20);
+    }, false);
+
+    //监听暂停
+    oLiveVideo.addEventListener('pause', function() {
+        clearInterval(bLiveVideoTimer);
+    }, false);
+
+    //监听结束
+    oLiveVideo.addEventListener('ended', function() {
+        clearInterval(bLiveVideoTimer);
+    }, false);
+</script>
+<script>
+    function isIPhoneX(fn) {
+        var u = navigator.userAgent;
+        var isIOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
+        if (isIOS) {
+            if (screen.height == 812 && screen.width == 375) {
+                //是iphoneX
+            } else {
+                $("#video-s").css("height", "100%")
+                    //不是iphoneX
+            }
+        }
+    }
+    isIPhoneX()
+</script>
+<script type="text/javascript">
+    /*后台传参数的接口*/
+
+    var url = window.location.href.split('#')[0];
+    var requestUrl = ""; //接口
+    $.ajax({
+        url: requestUrl,
+        type: "Get",
+        dataType: 'json', //如果需要跨域，需要些jsonp
+        success: function(data) {
+            var appId = data.appId;
+            var timestamp = data.timestamp;
+            var nonceStr = data.noncestr;
+            var signature = data.signature;
+            wx.config({
+                debug: false, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，
+                // 若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+                appId: appId + '', // 必填，公众号的唯一标识
+                timestamp: timestamp + '', // 必填，生成签名的时间戳
+                nonceStr: nonceStr + '', // 必填，生成签名的随机串
+                signature: signature + '', // 必填，签名，见附录1
+                jsApiList: ["onMenuShareTimeline", "onMenuShareAppMessage", "onMenuShareQQ"]
+                    // 必填，需要使用的JS接口列表，所有JS接口列表见附录2
+            });
+
+            wx.ready(function() {
+                var imgurl = '缩略图完整地址';
+                var title = '自定义标题';
+                var desc = '自定义描述信息';
+                wx.onMenuShareTimeline({
+                    title: title, // 分享标题
+                    desc: desc, // 分享描述
+                    link: url, // 分享链接
+                    imgUrl: imgurl, // 分享图标
+                    success: function() {
+                        // 用户确认分享后执行的回调函数
+                    },
+                    cancel: function() {
+                        // 用户取消分享后执行的回调函数
+                    }
+                });
+
+                wx.onMenuShareAppMessage({
+                    title: title, // 分享标题
+                    desc: desc, // 分享描述
+                    link: url, // 分享链接
+                    imgUrl: imgurl, // 分享图标
+                    type: '', // 分享类型,music、video或link，不填默认为link
+                    dataUrl: '', // 如果type是music或video，则要提供数据链接，默认为空
+                    success: function() {
+                        // 用户确认分享后执行的回调函数
+                    },
+                    cancel: function() {
+                        // 用户取消分享后执行的回调函数
+                    }
+                });
+
+                wx.onMenuShareQQ({
+                    title: title, // 分享标题
+                    desc: desc, // 分享描述
+                    link: url, // 分享链接
+                    imgUrl: imgurl, // 分享图标
+                    success: function() {
+                        // 用户确认分享后执行的回调函数
+                    },
+                    cancel: function() {
+                        // 用户取消分享后执行的回调函数
+                    }
+                });
+            });
+        }
+    });
+</script>
+
+</html>
